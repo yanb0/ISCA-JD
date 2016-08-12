@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 #coding:utf-8
+# -------------------------------------
+# Author:      isca.yb
+# Version:     1.0.1
 
 
 import threading
@@ -7,7 +10,6 @@ import sys
 import subprocess
 import re
 import os
-import datetime
 import time
 from datetime import datetime
 
@@ -23,11 +25,32 @@ def single(subnet):
 	Counter -= 1
 
 
+def isIPorNet(arg):
+
+	if '/' in arg:
+		item = arg.split('/')
+		if len(item) != 2:
+			print "Illegal ip or subnet mask : %s" % arg
+			exit()
+		if re.match(r'(?<![\.\d])((?:(?:2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(?:2[0-4]\d|25[0-5]|[01]?\d\d?))(?![\.\d])$', item[0]) and re.match(r'[0-1]{0,1}[0-9]$|2[0-4]$', item[1]) :
+			return True
+		else:
+			print "Illegal ip or subnet mask : %s" % arg
+			exit()
+			return False
+	else:
+		if re.match(r'(?<![\.\d])((?:(?:2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(?:2[0-4]\d|25[0-5]|[01]?\d\d?))(?![\.\d])$', arg):
+			return True
+		else:
+			print "Illegal ip : %s" % arg
+			exit()
+			return False
+
 def read_file(filename):
-    f = open(filename)
-    content = f.readlines()
-    f.close()
-    return content
+	f = open(filename)
+	content = f.readlines()
+	f.close()
+	return content
 
 
 if __name__ == '__main__':
@@ -54,22 +77,24 @@ if __name__ == '__main__':
 		lines = read_file(sys.argv[1])
 		for each in lines:
 			host = each.strip()
-			while Counter>3:
-				print "There are still %s threas running. Please be patient" % Counter
-				time.sleep(10)
-			t = threading.Thread(target=single,args=(host,))
-			t.start()
-			time.sleep(1)
-			if lock.acquire():
-				Counter += 1
-				lock.release()
-	else :
-		single(sys.argv[1])
+			if isIPorNet(host):
+				while Counter>3:
+					print "There are still %s threas running. Please be patient" % Counter
+					time.sleep(10)
+				t = threading.Thread(target=single,args=(host,))
+				t.start()
+				time.sleep(1)
+				if lock.acquire():
+					Counter += 1
+					lock.release()
+	else:
+		if isIPorNet(sys.argv[1]):
+			single(sys.argv[1])
 
 
 	while Counter > 0:
-	    print "There are still %s threas running. Please be patient ..." % Counter
-	    time.sleep(8)
+		print "There are still %s threas running. Please be patient ..." % Counter
+		time.sleep(8)
 
 	print "All nmap scans done !\nTime for nmaping these subnets is "+str(datetime.now() - startTime)[:-7] +"\n"
 	time.sleep(2)
@@ -83,12 +108,12 @@ if __name__ == '__main__':
 	matchIp = re.compile(r'(?<![\.\d])((?:(?:2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(?:2[0-4]\d|25[0-5]|[01]?\d\d?))(?![\.\d])')
 	matchPort = re.compile(r'\d+/tcp')
 	for line in f.readlines():
-	    m=''.join(matchIp.findall(line))
-	    n = ''.join(matchPort.findall(line))[:-4]
-	    if m != '':
-	        target = m
-	    if n != '':
-	        string+=target+':'+n+'\n'
+		m=''.join(matchIp.findall(line))
+		n = ''.join(matchPort.findall(line))[:-4]
+		if m != '':
+			target = m
+		if n != '':
+			string+=target+':'+n+'\n'
 
 	r = open('target.txt','w')
 	r.write(string)

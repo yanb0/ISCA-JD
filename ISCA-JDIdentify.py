@@ -2,7 +2,7 @@
 #coding:utf-8
 # -------------------------------------
 # Author:      isca.yb
-# Version:     1.0.0
+# Version:     1.0.1
 
 
 import os
@@ -306,7 +306,6 @@ def worker():
     r.close()
 
     sys.exit(0)
-    return
 
 
 if __name__ == '__main__':
